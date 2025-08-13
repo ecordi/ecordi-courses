@@ -1,0 +1,16 @@
+.env
+.env.prod
+.env.test
+
+node_modules
+yarn-error.log
+yarn.lock
+package-lock.json
+
+dist
+mp-preference*
+mp-simple*
+pp-debug*
+pp-simple*
+quic*
+tsconfig.build*
