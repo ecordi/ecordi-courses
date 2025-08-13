@@ -19,6 +19,7 @@ import { EnrollmentsModule } from '../enrollments/enrollments.module'
     EnrollmentsModule,
   ],
   providers: [PaymentsService],
-  controllers: [PaymentsController]
+  controllers: [PaymentsController],
+  exports: [PaymentsService]
 })
 export class PaymentsModule {}

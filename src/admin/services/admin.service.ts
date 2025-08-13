@@ -1,13 +1,14 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import { Course, CourseDocument } from '../../db/schemas/course.schema'
+import { Course, CourseDocument, CourseCategory } from '../../db/schemas/course.schema'
 import { Unit, UnitDocument } from '../../db/schemas/unit.schema'
 import { Material, MaterialDocument } from '../../db/schemas/material.schema'
 import { CreateCourseDto, UpdateCourseDto } from '../dto/course.dto'
 import { CreateUnitDto, UpdateUnitDto } from '../dto/unit.dto'
 import { CreateMaterialDto, UpdateMaterialDto } from '../dto/material.dto'
 import { PaginationDto } from '../../common/dto/pagination.dto'
+import { CourseFilterDto } from '../../courses/dto/course.dto'
 
 @Injectable()
 export class AdminService {
@@ -22,9 +23,23 @@ export class AdminService {
     return c.save()
   }
 
-  async listCoursesPaged(q: PaginationDto, status?: string) {
+  async listCoursesPaged(q: PaginationDto, status?: string, filters?: CourseFilterDto) {
     const filter: any = {}
+    
+    // Aplicar filtros básicos
     if (status) filter.status = status
+    
+    // Aplicar filtros avanzados si existen
+    if (filters) {
+      if (filters.search) {
+        filter.$or = [
+          { title: { $regex: filters.search, $options: 'i' } },
+          { description: { $regex: filters.search, $options: 'i' } }
+        ]
+      }
+      if (filters.category) filter.category = filters.category
+    }
+    
     const skip = (q.page - 1) * q.pageSize
     const [items, total] = await Promise.all([
       this.courseModel.find(filter).skip(skip).limit(q.pageSize).sort({ createdAt: -1 }).lean(),
@@ -38,7 +53,22 @@ export class AdminService {
     if (!c) throw new NotFoundException('Curso no encontrado')
     return c
   }
-
+ async getMaterialByCourse(id: string) {
+    // 1. Primero obtenemos todas las unidades del curso
+    const units = await this.unitModel.find({ courseId: new Types.ObjectId(id) }).lean()
+    
+    if (!units || units.length === 0) {
+      return []; // No hay unidades, por lo tanto no hay materiales
+    }
+    
+    // 2. Extraemos los IDs de las unidades
+    const unitIds = units.map(unit => unit._id);
+    
+    // 3. Buscamos todos los materiales que pertenecen a esas unidades
+    const materials = await this.materialModel.find({ unitId: { $in: unitIds } }).lean()
+    
+    return materials;
+  }
   async updateCourse(id: string, dto: UpdateCourseDto) {
     const c = await this.courseModel.findByIdAndUpdate(id, { $set: dto }, { new: true })
     if (!c) throw new NotFoundException('Curso no encontrado')
@@ -77,6 +107,12 @@ export class AdminService {
     if (!exists) throw new NotFoundException('Unidad no encontrada')
     const m = new this.materialModel({ ...dto, unitId: new Types.ObjectId(unitId) })
     return m.save()
+  }
+  
+  async getMaterial(id: string) {
+    const material = await this.materialModel.findById(id).lean()
+    if (!material) throw new NotFoundException('Material no encontrado')
+    return material
   }
 
   async updateMaterial(id: string, dto: UpdateMaterialDto) {

@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, Req, Res, UseGuards } from '@nestjs/common'
+import { Controller, Post, Body, Get, Req, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 import { AuthGuard } from '@nestjs/passport'
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,5 +32,14 @@ export class AuthController {
   @Get('facebook/callback') @UseGuards(AuthGuard('facebook')) async facebookCb(@Req() req: any, @Res() res: Response) {
     const data = await this.auth.oauthLogin({ provider: 'facebook', id: req.user.profile.id, name: req.user.profile.displayName, email: req.user.profile.emails?.[0]?.value })
     res.redirect(`/auth/success?token=${data.token}`)
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cerrar sesión del usuario' })
+  async logout(@Req() req: Request) {
+    return this.auth.logout(req.user['sub'])
   }
 }

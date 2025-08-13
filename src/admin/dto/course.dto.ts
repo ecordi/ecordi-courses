@@ -1,5 +1,6 @@
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator'
+import { IsString, IsNumber, IsOptional, Min, IsEnum } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { CourseCategory } from '../../db/schemas/course.schema'
 
 export class CreateCourseDto {
   @ApiProperty({ example: 'Curso de NestJS' })
@@ -13,6 +14,13 @@ export class CreateCourseDto {
 
   @ApiPropertyOptional({ example: 'https://cdn.example.com/covers/nestjs.png' })
   @IsOptional() @IsString() coverUrl?: string
+
+  @ApiProperty({ 
+    example: 'PROGRAMMING', 
+    enum: CourseCategory, 
+    description: 'Categoría del curso' 
+  })
+  @IsEnum(CourseCategory) category: CourseCategory
 }
 
 export class UpdateCourseDto {
@@ -30,4 +38,11 @@ export class UpdateCourseDto {
 
   @ApiPropertyOptional({ example: 'ACTIVE', enum: ['ACTIVE','INACTIVE'] })
   @IsOptional() @IsString() status?: 'ACTIVE' | 'INACTIVE'
+  
+  @ApiPropertyOptional({ 
+    example: 'PROGRAMMING', 
+    enum: CourseCategory, 
+    description: 'Categoría del curso' 
+  })
+  @IsOptional() @IsEnum(CourseCategory) category?: CourseCategory
 }

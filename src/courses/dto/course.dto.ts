@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsNumber, IsOptional, IsBoolean, IsMongoId, Min } from 'class-validator'
+import { IsString, IsNumber, IsOptional, IsBoolean, IsMongoId, Min, IsEnum } from 'class-validator'
+import { CourseCategory } from '../../db/schemas/course.schema'
 
 export class CourseResponseDto {
   @ApiProperty({ example: '64f0e1d5c57e4b001c3d7c01' })
@@ -22,6 +23,13 @@ export class CourseResponseDto {
 
   @ApiProperty({ example: ['64f0e1d5c57e4b001c3d7c02'] })
   units?: string[]
+  
+  @ApiProperty({ 
+    example: 'PROGRAMMING', 
+    enum: CourseCategory, 
+    description: 'Categoría del curso' 
+  })
+  category: CourseCategory
 }
 
 export class CreateCourseDto {
@@ -89,4 +97,13 @@ export class CourseFilterDto {
   @IsBoolean()
   @IsOptional()
   active?: boolean
+  
+  @ApiProperty({ 
+    required: false, 
+    enum: CourseCategory, 
+    description: 'Filtrar por categoría' 
+  })
+  @IsEnum(CourseCategory)
+  @IsOptional()
+  category?: CourseCategory
 }

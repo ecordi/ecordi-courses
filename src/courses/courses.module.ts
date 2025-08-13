@@ -8,7 +8,9 @@ import { CoursesController } from './courses.controller'
 import { CoursesService } from './courses.service'
 import { StorageModule } from '../storage/storage.module'
 import { EnrollmentsModule } from '../enrollments/enrollments.module'
+import { PaymentsModule } from '../payments/payments.module'
 import { EnrollmentGuard } from './guards/enrollment.guard'
+import { EnrollmentController } from './enrollment.controller'
 
 @Module({
   imports: [
@@ -19,10 +21,11 @@ import { EnrollmentGuard } from './guards/enrollment.guard'
       { name: Enrollment.name, schema: EnrollmentSchema }
     ]),
     StorageModule,
-    EnrollmentsModule
+    EnrollmentsModule,
+    PaymentsModule
   ],
-  controllers: [CoursesController],
+  controllers: [CoursesController, EnrollmentController],
   providers: [CoursesService, EnrollmentGuard],
-  exports: [CoursesService, MongooseModule]
+  exports: [CoursesService, MongooseModule, EnrollmentGuard]
 })
 export class CoursesModule {}

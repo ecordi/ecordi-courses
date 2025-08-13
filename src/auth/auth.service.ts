@@ -59,6 +59,17 @@ export class AuthService {
     return this.sign(user)
   }
 
+  async logout(userId: string) {
+    // En una implementación con tokens de refresco o lista negra de tokens,
+    // aquí invalidaríamos el token. Como usamos JWT simples, solo devolvemos éxito.
+    // Para una implementación más segura, se podría:
+    // 1. Mantener una lista negra de tokens en Redis
+    // 2. Actualizar un campo tokenVersion en el usuario
+    // 3. Implementar tokens de refresco
+    
+    return { success: true, message: 'Sesión cerrada correctamente' }
+  }
+
   private sign(user: UserDocument) {
     try {
       const payload = { sub: user._id.toString(), role: user.role }

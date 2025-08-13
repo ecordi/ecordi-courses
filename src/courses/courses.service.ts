@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { Course, CourseDocument } from '../db/schemas/course.schema'
@@ -6,6 +6,7 @@ import { Unit, UnitDocument } from '../db/schemas/unit.schema'
 import { Material, MaterialDocument } from '../db/schemas/material.schema'
 import { StorageService } from '../storage/storage.service'
 import { PaginationDto } from '../common/dto/pagination.dto'
+import { CourseFilterDto } from './dto/course.dto'
 
 @Injectable()
 export class CoursesService {
@@ -16,9 +17,21 @@ export class CoursesService {
     private storage: StorageService
   ) {}
 
-  async list(q: PaginationDto, status?: string) {
+  async list(q: PaginationDto, filters?: CourseFilterDto) {
     const filter: any = {}
-    if (status) filter.status = status
+    
+    // Aplicar filtros si existen
+    if (filters) {
+      if (filters.active !== undefined) filter.status = filters.active ? 'ACTIVE' : 'INACTIVE'
+      if (filters.search) {
+        filter.$or = [
+          { title: { $regex: filters.search, $options: 'i' } },
+          { description: { $regex: filters.search, $options: 'i' } }
+        ]
+      }
+      if (filters.category) filter.category = filters.category
+    }
+    
     const skip = (q.page - 1) * q.pageSize
     const [items, total] = await Promise.all([
       this.courseModel.find(filter).skip(skip).limit(q.pageSize).sort({ createdAt: -1 }).lean(),

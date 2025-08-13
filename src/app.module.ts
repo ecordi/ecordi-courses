@@ -10,6 +10,9 @@ import { EnrollmentsModule } from './enrollments/enrollments.module'
 import { PaymentsModule } from './payments/payments.module'
 import { StorageModule } from './storage/storage.module'
 import { AdminModule } from './admin/admin.module'
+import { ProgressModule } from './progress/progress.module'
+import { CommentsModule } from './comments/comments.module'
+import { CategoriesModule } from './categories/categories.module'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { LoggerModule } from 'nestjs-pino'
@@ -39,6 +42,9 @@ import { HealthController } from './app.controller'
     PaymentsModule,
     StorageModule,
     AdminModule,
+    ProgressModule,
+    CommentsModule,
+    CategoriesModule,
     
   ],
   controllers: [HealthController],

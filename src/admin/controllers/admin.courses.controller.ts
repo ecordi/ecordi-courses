@@ -7,6 +7,8 @@ import { CreateCourseDto, UpdateCourseDto } from '../dto/course.dto'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { ObjectIdPipe } from '../../common/pipes/objectid.pipe'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { CourseCategory } from '../../db/schemas/course.schema'
+import { CourseFilterDto } from '../../courses/dto/course.dto'
 
 @ApiTags('Admin/Courses')
 @ApiBearerAuth()
@@ -22,9 +24,20 @@ export class AdminCoursesController {
 
   @Get()
   @ApiOperation({ summary: 'List courses (admin)' })
-  @ApiQuery({ name: 'status', required: false })
-  async list(@Query() q: PaginationDto, @Query('status') status?: string) {
-    return this.service.listCoursesPaged(q, status)
+  @ApiQuery({ name: 'status', required: false, description: 'Filter by status (ACTIVE/INACTIVE)' })
+  @ApiQuery({ name: 'search', required: false, description: 'Search in title and description' })
+  @ApiQuery({ name: 'category', required: false, enum: CourseCategory, description: 'Filter by category' })
+  async list(
+    @Query() q: PaginationDto, 
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: CourseCategory
+  ) {
+    const filters: CourseFilterDto = {};
+    if (search) filters.search = search;
+    if (category) filters.category = category as CourseCategory;
+    
+    return this.service.listCoursesPaged(q, status, filters);
   }
 
   @Get(':id')

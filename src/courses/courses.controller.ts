@@ -5,6 +5,8 @@ import { EnrollmentGuard } from './guards/enrollment.guard'
 import { PaginationDto } from '../common/dto/pagination.dto'
 import { ObjectIdPipe } from '../common/pipes/objectid.pipe'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { CourseFilterDto } from './dto/course.dto'
+import { CourseCategory } from '../db/schemas/course.schema'
 
 @ApiTags('Courses')
 @Controller('courses')
@@ -13,9 +15,21 @@ export class CoursesController {
 
   @Get()
   @ApiOperation({ summary: 'List courses' })
-  @ApiQuery({ name: 'status', required: false, description: 'Filter by status' })
-  async list(@Query() q: PaginationDto, @Query('status') status?: string) {
-    return this.service.list(q, status)
+  @ApiQuery({ name: 'search', required: false, description: 'Search in title and description' })
+  @ApiQuery({ name: 'active', required: false, description: 'Filter by active status', type: Boolean })
+  @ApiQuery({ name: 'category', required: false, description: 'Filter by category', enum: CourseCategory })
+  async list(
+    @Query() q: PaginationDto, 
+    @Query('search') search?: string,
+    @Query('active') active?: boolean,
+    @Query('category') category?: CourseCategory
+  ) {
+    const filters: CourseFilterDto = {};
+    if (search) filters.search = search;
+    if (active !== undefined) filters.active = typeof active === 'string' ? active === 'true' : active;
+    if (category) filters.category = category as CourseCategory;
+    
+    return this.service.list(q, filters);
   }
 
   @Get(':id')
